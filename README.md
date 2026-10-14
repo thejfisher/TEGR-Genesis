@@ -1,5 +1,7 @@
 # TEGR Genesis
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23380953.svg)](https://doi.org/10.5281/zenodo.23380953)
+
 A desktop application for simulating and analyzing topological gravity (TEGR).
 Instead of hard-coding gravity equations, TEGR Genesis simulates a flat field. Mass creates waves, and particles slide down the local slope of those waves. Gravity emerges naturally.
 
