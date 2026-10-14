@@ -138,6 +138,8 @@ class RunResult:
     frame_t: np.ndarray                  # (F,)
     field_frames: np.ndarray             # (F, G, G) z = 0 slice of phi
     final_phi: np.ndarray                # (G, G, G)
+    gamma: np.ndarray = None             # (T, N)
+    phase: np.ndarray = None             # (T, N)
     status: str = "completed"
     message: str = ""
     device: str = "cpu"
@@ -423,7 +425,7 @@ class Engine:
         frame_every = rec_every * max(1, math.ceil(n_rec / max(1, s.max_field_frames)))
         L = {k: [] for k in ("t", "field_kinetic", "field_potential", "field_energy",
                              "particle_kinetic", "total_energy", "peak_phi", "horizon_radius")}
-        P, V, A = [], [], []
+        P, V, A, Gam, Thetas = [], [], [], [], []
         frames, frame_t = [], []
         zc = G // 2
         cell_vol = dx ** 3
@@ -447,6 +449,8 @@ class Engine:
                 P.append(pos.cpu().numpy().astype(np.float64))
                 V.append((mom / (g[:, None] * mass[:, None])).cpu().numpy().astype(np.float64))
                 A.append(alive.cpu().numpy().copy())
+                Gam.append(g.cpu().numpy().astype(np.float64))
+                Thetas.append(theta.cpu().numpy().astype(np.float64))
             else:
                 ke = 0.0
             L["t"].append(tt)
@@ -526,6 +530,8 @@ class Engine:
             pos=np.stack(P) if P else np.zeros((len(L["t"]), 0, 3)),
             vel=np.stack(V) if V else np.zeros((len(L["t"]), 0, 3)),
             alive=np.stack(A) if A else np.zeros((len(L["t"]), 0), dtype=bool),
+            gamma=np.stack(Gam) if Gam else np.zeros((len(L["t"]), 0)),
+            phase=np.stack(Thetas) if Thetas else np.zeros((len(L["t"]), 0)),
             telemetry={k: np.asarray(v) for k, v in L.items() if k != "t"},
             frame_t=np.asarray(frame_t),
             field_frames=np.stack(frames) if frames else np.zeros((0, G, G), np.float32),

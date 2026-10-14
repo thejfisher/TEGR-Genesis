@@ -3,7 +3,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, 
-    QSplitter, QDoubleSpinBox, QLabel, QApplication, QScrollArea
+    QSplitter, QDoubleSpinBox, QLabel, QApplication, QScrollArea, QCheckBox
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
@@ -33,6 +33,15 @@ class PySindyTab(QWidget):
         top.addWidget(self.btn_run)
         top.addWidget(QLabel("Threshold:"))
         top.addWidget(self.thresh_spin)
+        
+        self.chk_gravity = QCheckBox("Gravity (1/r²)")
+        self.chk_gravity.setChecked(True)
+        self.chk_gamma = QCheckBox("Relativity (γ, m0/γ)")
+        self.chk_phase = QCheckBox("Phase/Solitons (θ, sin(θ), cos(θ))")
+        
+        top.addWidget(self.chk_gravity)
+        top.addWidget(self.chk_gamma)
+        top.addWidget(self.chk_phase)
         top.addStretch()
         lay.addLayout(top)
         
@@ -80,7 +89,12 @@ class PySindyTab(QWidget):
         try:
             from core.exporter import sindy_fit, fig_sindy
             threshold = self.thresh_spin.value()
-            text, fits = sindy_fit(self.result, threshold=threshold)
+            opts = {
+                "gravity": self.chk_gravity.isChecked(),
+                "gamma": self.chk_gamma.isChecked(),
+                "phase": self.chk_phase.isChecked(),
+            }
+            text, fits = sindy_fit(self.result, threshold=threshold, options=opts)
             
             self.text_out.setPlainText(text)
             

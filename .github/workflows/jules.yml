@@ -1,0 +1,27 @@
+name: Google Jules Agent
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Task instructions for Jules'
+        required: true
+        default: 'Scan the codebase, improve unit tests in tests/, and open a PR with the improvements.'
+
+jobs:
+  run-jules:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && github.event.label.name == 'jules')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Invoke Jules Agent
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: ${{ github.event.inputs.prompt || github.event.issue.body || github.event.issue.title }}
+          starting_branch: 'master'
+          include_last_commit: true

@@ -309,7 +309,7 @@ def export_raw(res, folder):
 
 
 # ----------------------------------------------------------------------------- PySINDy
-def sindy_fit(res, threshold=0.05):
+def sindy_fit(res, threshold=0.05, options=None):
     """Fit each moving body's motion with PySINDy. Returns (report text, list of per-body fit dicts)."""
     import pysindy as ps
 
@@ -330,19 +330,20 @@ def sindy_fit(res, threshold=0.05):
         "  State per moving body: x, y, vx, vy  (z ignored; bodies start on the z = 0 plane).",
         "  Derivatives: x' = vx, y' = vy from the record; vx', vy' = numerical slope of the recorded speed.",
         "  Only times after the warm-up, while the body is inside the box.",
-        "  Candidate terms: 1, x, y, vx, vy, and for each fixed well/anchor k the gravity-shaped terms",
-        "    gx_k = (X_k - x)/r_k^3 ,  gy_k = (Y_k - y)/r_k^3",
+        "  Candidate terms: 1, x, y, vx, vy, plus selected optional terms (gravity, relativity, phase).",
         "  NOTE: these candidate terms are a choice of the ANALYSIS only. The simulation itself never uses",
         "  them: bodies only feel the slope of the field φ.",
         f"  Optimizer: STLSQ, threshold {threshold} (on normalized columns).",
         "",
         "Two fits per body",
         "  A. Gravity-only: vx', vy' using ONLY the gravity-shaped terms. A direct test of Newton's law.",
+        "     (This fit is skipped if Gravity is not selected).",
         "  B. Open search: all candidate terms; PySINDy picks which to keep.",
         "  If the terms look alike along the path (e.g. on a circle x and (X-x)/r^3 move together),",
         "  fit B cannot tell them apart and may invent extra terms. The report warns when that happens.",
         "",
     ]
+    options = options or {"gravity": True, "gamma": False, "phase": False}
     fits = []
     for j, kind in enumerate(res.kinds):
         if kind not in MOVING_KINDS:
@@ -359,11 +360,24 @@ def sindy_fit(res, threshold=0.05):
         X = np.column_stack([x, y, vx, vy])
         Xd = np.column_stack([vx, vy, ax_, ay_])
         U, unames = [], []
-        for k in src:
-            dxk, dyk = res.pos[0, k, 0] - x, res.pos[0, k, 1] - y
-            r3 = np.maximum(np.hypot(dxk, dyk), 1e-6) ** 3
-            U += [dxk / r3, dyk / r3]
-            unames += [f"gx{k}", f"gy{k}"]
+        if options.get("gravity", True):
+            for k in src:
+                dxk, dyk = res.pos[0, k, 0] - x, res.pos[0, k, 1] - y
+                r3 = np.maximum(np.hypot(dxk, dyk), 1e-6) ** 3
+                U += [dxk / r3, dyk / r3]
+                unames += [f"gx{k}", f"gy{k}"]
+                
+        if options.get("gamma", False) and hasattr(res, "gamma") and res.gamma is not None and res.gamma.size > 0:
+            gamma_arr = res.gamma[idx, j]
+            m0 = float(res.entities[j].get("mass", 1.0))
+            U += [gamma_arr, m0 / np.maximum(gamma_arr, 1e-6)]
+            unames += ["gamma", "m0/gamma"]
+            
+        if options.get("phase", False) and hasattr(res, "phase") and res.phase is not None and res.phase.size > 0:
+            theta_arr = res.phase[idx, j]
+            U += [theta_arr, np.sin(theta_arr), np.cos(theta_arr)]
+            unames += ["theta", "sin(theta)", "cos(theta)"]
+            
         U = np.column_stack(U) if U else None
         names = ["x", "y", "vx", "vy"] + unames
         model = ps.SINDy(optimizer=ps.STLSQ(threshold=threshold, normalize_columns=True),
@@ -378,11 +392,13 @@ def sindy_fit(res, threshold=0.05):
         lines.append(f"[{labels[j]}]  ({kind}, {len(idx)} samples)")
 
         # --- A. gravity-only fit (PySINDy STLSQ on just the gravity terms)
-        if U is not None:
+        has_grav = options.get("gravity", True) and len(src) > 0
+        if U is not None and has_grav:
             gA = ps.STLSQ(threshold=0.0)
-            gA.fit(U, Xd[:, 2:4])
-            cA = np.asarray(gA.coef_)            # (2, n_u)
-            predA = U @ cA.T
+            n_grav = 2 * len(src)
+            gA.fit(U[:, :n_grav], Xd[:, 2:4])
+            cA = np.asarray(gA.coef_)            # (2, n_grav)
+            predA = U[:, :n_grav] @ cA.T
             ss = ((Xd[:, 2:4] - Xd[:, 2:4].mean(axis=0)) ** 2).sum()
             r2A = 1.0 - ((Xd[:, 2:4] - predA) ** 2).sum() / ss if ss > 0 else float("nan")
             lines.append(f"  A. Gravity-only fit  (R² = {r2A:.4f})")
@@ -393,6 +409,8 @@ def sindy_fit(res, threshold=0.05):
                     expect = K * Gs * masses[k]
                     txt += f"   Newton K·G·M = {expect:.4g}   ratio {0.5 * (fx + fy) / expect:.3f}"
                 lines.append(txt)
+        else:
+            predA = None
 
         # --- B. open search
         lines.append(f"  B. Open search  (R² = {score:.4f})")
@@ -402,10 +420,10 @@ def sindy_fit(res, threshold=0.05):
         Th = Th / np.maximum(np.linalg.norm(Th, axis=0), 1e-30)
         cond = float(np.linalg.cond(Th))
         n_terms = int(np.count_nonzero(np.asarray(model.coefficients())[2:4]))
-        gain = score - r2A if U is not None else float("nan")
-        if U is not None:
+        gain = score - r2A if has_grav else float("nan")
+        if U is not None and has_grav:
             lines.append(f"     Fit B uses {n_terms} terms for vx', vy' and improves R² by {gain:+.4f} over fit A.")
-        if U is not None and gain < 0.01 and n_terms > 2 * len(src):
+        if U is not None and has_grav and gain < 0.01 and n_terms > 2 * len(src):
             lines.append("     WARNING: the extra terms buy almost no accuracy, so they are most likely overfitting")
             lines.append("     (PySINDy trading look-alike terms against each other). Trust fit A for this body.")
         elif cond > 1e3:
@@ -413,7 +431,7 @@ def sindy_fit(res, threshold=0.05):
             lines.append("     Fit B cannot separate them, so its extra terms are not trustworthy. Use fit A.")
         lines.append("")
         fits.append(dict(body=j, label=labels[j], t=tt, actual=Xd, predicted=pred, score=score, equations=eqs,
-                         predicted_A=(predA if U is not None else None)))
+                         predicted_A=predA))
     if not fits:
         lines.append("No moving bodies with enough data after the warm-up.")
     return "\n".join(lines), fits
@@ -443,9 +461,9 @@ def fig_sindy(fits):
     return fig
 
 
-def export_sindy(res, folder, threshold=0.05):
+def export_sindy(res, folder, threshold=0.05, options=None):
     folder = Path(folder); folder.mkdir(parents=True, exist_ok=True)
-    text, fits = sindy_fit(res, threshold)
+    text, fits = sindy_fit(res, threshold, options)
     p = folder / "sindy_results.txt"
     p.write_text(text, encoding="utf-8")
     files = [p]
