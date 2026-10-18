@@ -35,7 +35,13 @@ PREDICTION, WRITTEN BEFORE RUNNING
   We do not expect a flat outer rotation curve: a lumpy disk of moving masses still has the same total mass.
 
 Outputs: results/spinning_disk.json and results/spinning_disk.png
+
+v0.1a (2026-10-18): the engine now has the self-push fix (time-centred force + smooth body cloud).
+  python spinning_disk.py --tag v01a_tsc --kernel tsc
+  python spinning_disk.py --tag v01a_gauss --kernel gauss --width 2.8125
+  results/spinning_disk.json (made with the old engine) is left as it is.
 """
+import argparse
 import json
 import math
 import os
@@ -77,9 +83,12 @@ def build_disk():
     return np.array(out)
 
 
+BODY = dict(body_kernel="tsc", body_width=2.8125)
+
+
 def settings(alpha):
     kw = dict(grid_resolution=128, alpha=alpha, warmup_ticks=WARM, total_ticks=WARM + ORBIT,
-              record_every=100, max_field_frames=200)
+              record_every=100, max_field_frames=200, **BODY)
     if alpha > 0:
         kw.update(source_local_speed=True, c2_min=0.01)
     return SimSettings(**kw)
@@ -174,11 +183,20 @@ def analyse(name, res, s, disk_rows, senses, pre_slice):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="", help="save as spinning_disk_<tag>.json/.png")
+    ap.add_argument("--kernel", default="tsc", choices=("cic", "tsc", "gauss"), help="cloud for active bodies")
+    ap.add_argument("--width", type=float, default=2.8125, help="gauss cloud width sigma (grid units)")
+    args = ap.parse_args()
+    BODY.update(body_kernel=args.kernel, body_width=args.width)
+    name = "spinning_disk" + (f"_{args.tag}" if args.tag else "")
+    print(f"Body cloud: {args.kernel}{f' (sigma {args.width:g})' if args.kernel == 'gauss' else ''} "
+          f"-> results/{name}.*", flush=True)
     disk = build_disk()
     rng = np.random.default_rng(SEED + 1)
     mixed = list(rng.permutation([1] * (DISK_N // 2) + [-1] * (DISK_N - DISK_N // 2)))
     summary = {"setup": {"core_mass": CORE_M, "disk_mass": DISK_M, "disk_n": DISK_N, "disk_r": [DISK_RMIN, DISK_RMAX],
-                         "warmup_ticks": WARM, "orbit_ticks": ORBIT}, "alpha": {}}
+                         "warmup_ticks": WARM, "orbit_ticks": ORBIT, **BODY}, "alpha": {}}
     wake_maps = {}
     for alpha in (0.0, 0.1):
         s = settings(alpha)
@@ -212,7 +230,7 @@ def main():
                   f"outer pull after/before {min(a['outer_pull_after_over_before']):.4f}-"
                   f"{max(a['outer_pull_after_over_before']):.4f}", flush=True)
         summary["alpha"][str(alpha)] = block
-        with open(os.path.join(OUT, "spinning_disk.json"), "w") as f:
+        with open(os.path.join(OUT, f"{name}.json"), "w") as f:
             json.dump(summary, f, indent=1)
 
     # ------------------------------------------------------------ plain-language summary
@@ -269,8 +287,8 @@ def main():
         ax[row, 2].set_title(f"alpha={alpha}: P wake = field (late average) minus still field")
         plt.colorbar(im, ax=ax[row, 2], fraction=0.046)
     plt.tight_layout()
-    plt.savefig(os.path.join(OUT, "spinning_disk.png"), dpi=150)
-    print("\nSaved results/spinning_disk.png and results/spinning_disk.json")
+    plt.savefig(os.path.join(OUT, f"{name}.png"), dpi=150)
+    print(f"\nSaved results/{name}.png and results/{name}.json")
 
 
 if __name__ == "__main__":
