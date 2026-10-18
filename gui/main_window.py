@@ -218,6 +218,20 @@ class MainWindow(QMainWindow):
             "On = each source is scaled by the local c/c_base, so horizon cores settle\n"
             "by themselves instead of piling up to the c2_min guard.\n"
             "Only matters when α > 0. Preserves 100% of gravitating mass at infinity.")
+        self.body_kernel_combo = QComboBox(); self.body_kernel_combo.setObjectName("bodyKernel")
+        for text, key in (("TSC (3×3×3 cells)", "tsc"), ("Gaussian (fixed size)", "gauss"),
+                          ("CIC (2×2×2, old)", "cic")):
+            self.body_kernel_combo.addItem(text, key)
+        self.body_kernel_combo.setToolTip(
+            "How an Active Body spreads its mass on the grid and feels the field.\n"
+            "TSC (default): smooth, fixes most of the grid self-push.\n"
+            "Gaussian: body has a fixed size (Body width); best match between grids.\n"
+            "CIC: the old rule; fast Active Bodies push themselves on fine grids.\n"
+            "Tracers, Gravity Wells and Anchors always use CIC.")
+        self.body_width_spin = self._dspin("bodyWidth", 0.1, 1000.0, 2.8125, 4,
+                                           "Gaussian body size σ in grid units (only for the Gaussian cloud)")
+        self.body_kernel_combo.currentIndexChanged.connect(self._on_body_kernel_changed)
+        self.body_width_spin.setEnabled(False)
         form.addRow("Grid size", self.grid_spin)
         form.addRow("Cell size dx", self.dx_spin)
         form.addRow("Time step dt", self.dt_spin)
@@ -232,6 +246,8 @@ class MainWindow(QMainWindow):
         form.addRow("Pauli push", self.pauli_spin)
         form.addRow("Record every", self.record_spin)
         form.addRow(self.local_source_check)
+        form.addRow("Body cloud", self.body_kernel_combo)
+        form.addRow("Body width", self.body_width_spin)
         lay.addWidget(sim)
 
         # Legacy-only settings
@@ -409,6 +425,8 @@ class MainWindow(QMainWindow):
             "pauli_strength": self.pauli_spin.value(),
             "record_every": self.record_spin.value(),
             "source_local_speed": self.local_source_check.isChecked(),
+            "body_kernel": self.body_kernel_combo.currentData(),
+            "body_width": self.body_width_spin.value(),
             "decay_base": self.decay_spin.value(),
             "decay_gamma": self.decay_gamma_spin.value(),
             "legacy_source": self.legacy_source_spin.value(),
@@ -436,6 +454,10 @@ class MainWindow(QMainWindow):
         if "legacy_periodic" in d:
             self.legacy_periodic_check.setChecked(bool(d["legacy_periodic"]))
         self.local_source_check.setChecked(bool(d.get("source_local_speed", False)))
+        i = self.body_kernel_combo.findData(d.get("body_kernel", "tsc"))
+        self.body_kernel_combo.setCurrentIndex(max(i, 0))
+        if "body_width" in d:
+            self.body_width_spin.setValue(float(d["body_width"]))
         if "physics_rule" in d:
             i = self.rule_combo.findData(d["physics_rule"])
             if i >= 0:
@@ -758,10 +780,16 @@ class MainWindow(QMainWindow):
         self.sponge_spin.setEnabled(not legacy)
         self.source_spin.setEnabled(not legacy)
         self.local_source_check.setEnabled(not legacy)
+        self.body_kernel_combo.setEnabled(not legacy)
+        self._on_body_kernel_changed()
         self._sync_canvas()
         if self.editor.entity is not None:
             self.editor.set_entity(self.editor.entity, legacy=legacy)
         self._on_box_changed()
+
+    def _on_body_kernel_changed(self):
+        legacy = self.rule_combo.currentData() == "legacy2600"
+        self.body_width_spin.setEnabled(not legacy and self.body_kernel_combo.currentData() == "gauss")
 
     def _on_box_changed(self):
         g, dx = self.grid_spin.value(), self.dx_spin.value()
@@ -790,7 +818,10 @@ class MainWindow(QMainWindow):
             "<b>Legacy TEGR 2600</b><br>"
             "φ<sub>tt</sub> = c²(φ) ∇²φ, times a decay each tick.<br><br>"
             "<b>Particles</b><br>"
-            "Pushed by the field slope (∇φ). Active bodies and anchors feed the field; tracers don't.")
+            "Pushed by the field slope (∇φ). Active bodies and anchors feed the field; tracers don't.<br>"
+            "MS38 (v0.1a): the push is read from the field at the body's own time step, so a moving "
+            "Active Body no longer pushes itself forward. 'Body cloud' sets how an Active Body spreads on "
+            "the grid (TSC default; Gaussian = fixed body size, best match between grids; CIC = old).")
 
     def _show_about(self):
         QMessageBox.about(self, "About TEGR Genesis",

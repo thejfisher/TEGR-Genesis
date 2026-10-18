@@ -30,7 +30,13 @@ PREDICTION, WRITTEN BEFORE RUNNING
   So: if the result changes from grid to grid, it is the grid, not the physics.
 
 Outputs: results/grid_check.json and results/grid_check.png
+
+v0.1a (2026-10-18): engine.py now has time_centred_force (on by default).
+  python grid_check.py --tag v01a            -> results/grid_check_v01a.json / .png (fixed engine)
+  python grid_check.py --tag old --old-timing -> pre-v0.1a force timing, for comparison
+  The original results/grid_check.json (made before the fix) is left as it is.
 """
+import argparse
 import json
 import math
 import os
@@ -59,6 +65,11 @@ GRIDS = {
 FREE_CASES = [("x 0.1c", 0.1, 0.0), ("x 0.2c", 0.2, 0.0), ("x 0.4c", 0.4, 0.0), ("diag 0.2c", 0.2, 45.0)]
 
 
+OLD_TIMING = False
+KERNEL = "cic"
+WIDTH = 2.8125
+
+
 def settings(g, after_t):
     dt = g["dt"]
     warm = int(round(WARM_T / dt))
@@ -66,7 +77,8 @@ def settings(g, after_t):
                        sponge_width=g["grid_resolution"] * 12 // 128,   # same physical edge layer (33.75 units)
                        warmup_ticks=warm, total_ticks=warm + int(round(after_t / dt)),
                        source_ramp_ticks=int(round(15.0 / dt)),
-                       record_every=max(1, int(round(0.05 / dt))), max_field_frames=4)
+                       record_every=max(1, int(round(0.05 / dt))), max_field_frames=4,
+                       time_centred_force=not OLD_TIMING, body_kernel=KERNEL, body_width=WIDTH)
 
 
 def after_release(res, s, j):
@@ -119,23 +131,42 @@ def orbit(name, s):
 
 
 def main():
-    out = {"free": {}, "orbit": {}}
-    for gname, g in GRIDS.items():
+    global OLD_TIMING, KERNEL, WIDTH
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="", help="save as grid_check_<tag>.json/.png")
+    ap.add_argument("--old-timing", action="store_true", help="pre-v0.1a force timing (one tick ahead)")
+    ap.add_argument("--kernel", default="cic", choices=("cic", "tsc", "gauss"), help="cloud for moving bodies")
+    ap.add_argument("--width", type=float, default=2.8125, help="gauss cloud width sigma (grid units)")
+    ap.add_argument("--grids", default=",".join(GRIDS), help="comma list, e.g. coarse,base")
+    ap.add_argument("--cases", default=",".join(c[0] for c in FREE_CASES), help="comma list of free cases")
+    ap.add_argument("--no-orbit", action="store_true", help="free-star test only")
+    args = ap.parse_args()
+    OLD_TIMING = args.old_timing
+    KERNEL = args.kernel
+    WIDTH = args.width
+    name = "grid_check" + (f"_{args.tag}" if args.tag else "")
+    grids = {k: GRIDS[k] for k in args.grids.split(",")}
+    cases = [c for c in FREE_CASES if c[0] in args.cases.split(",")]
+    print(f"Force timing: {'OLD (one tick ahead)' if OLD_TIMING else 'time-centred (v0.1a)'}, kernel {KERNEL}"
+          f"{f' (sigma {WIDTH:g})' if KERNEL == 'gauss' else ''} -> results/{name}.*", flush=True)
+    out = {"free": {}, "orbit": {}, "old_timing": OLD_TIMING, "kernel": KERNEL, "width": WIDTH}
+    for gname, g in grids.items():
         s_free = settings(g, FREE_T)
         out["free"][gname] = {}
-        for label, frac, ang in FREE_CASES:
+        for label, frac, ang in cases:
             r = free_star(f"{gname} free {label}", s_free, frac, ang)
             out["free"][gname][label] = r
             print(f"    {gname:<8} free {label:<10} release {r['release_change_pct']:+.2f}% | steady "
                   f"{r['steady_accel_pct_per_t']:+.3f}% of speed per time unit | end {r['end_change_pct']:+.2f}% | "
                   f"max sideways {100 * r['max_side_over_v0']:.2f}%", flush=True)
-        o = orbit(gname, settings(g, ORBIT_T))
-        out["orbit"][gname] = o
-        for kind in ("active", "tracer"):
-            k = o[kind]
-            print(f"    {gname:<8} orbit {kind:<7} r within {k['r_min']:.3f} - {k['r_max']:.3f} | spin change "
-                  f"{k['L_change_pct']:+.1f}% | alive at end {k['alive_end']}", flush=True)
-        with open(os.path.join(OUT, "grid_check.json"), "w") as f:
+        if not args.no_orbit:
+            o = orbit(gname, settings(g, ORBIT_T))
+            out["orbit"][gname] = o
+            for kind in ("active", "tracer"):
+                k = o[kind]
+                print(f"    {gname:<8} orbit {kind:<7} r within {k['r_min']:.3f} - {k['r_max']:.3f} | spin change "
+                      f"{k['L_change_pct']:+.1f}% | alive at end {k['alive_end']}", flush=True)
+        with open(os.path.join(OUT, f"{name}.json"), "w") as f:
             json.dump(out, f, indent=1)
 
     import matplotlib
@@ -145,8 +176,10 @@ def main():
     fig, ax = plt.subplots(1, 3, figsize=(17, 4.8))
     for gname, d in out["free"].items():
         for label, ls in (("x 0.2c", "-"), ("diag 0.2c", "--")):
-            ax[0].plot(d[label]["t"], d[label]["v_over_v0"], color=cols[gname], ls=ls, label=f"{gname} {label}")
-        ax[1].plot([0.1, 0.2, 0.4], [d[l]["steady_accel_pct_per_t"] for l in ("x 0.1c", "x 0.2c", "x 0.4c")],
+            if label in d:
+                ax[0].plot(d[label]["t"], d[label]["v_over_v0"], color=cols[gname], ls=ls, label=f"{gname} {label}")
+        xs = [(f, l) for f, l in ((0.1, "x 0.1c"), (0.2, "x 0.2c"), (0.4, "x 0.4c")) if l in d]
+        ax[1].plot([f for f, _ in xs], [d[l]["steady_accel_pct_per_t"] for _, l in xs],
                    "o-", color=cols[gname], label=gname)
     ax[0].axhline(1.0, color="k", ls=":")
     ax[0].set_title("Free star (no centre): speed / launch speed"); ax[0].set_xlabel("time since release")
@@ -161,8 +194,8 @@ def main():
     ax[2].set_title("Orbit at r = 35, star mass 4.67 (solid = feeds field, dotted = tracer)")
     ax[2].set_xlabel("time since release"); ax[2].set_ylabel("r / r_start"); ax[2].legend(fontsize=7)
     plt.tight_layout()
-    plt.savefig(os.path.join(OUT, "grid_check.png"), dpi=160)
-    print("\nSaved results/grid_check.png and results/grid_check.json")
+    plt.savefig(os.path.join(OUT, f"{name}.png"), dpi=160)
+    print(f"\nSaved results/{name}.png and results/{name}.json")
 
 
 if __name__ == "__main__":

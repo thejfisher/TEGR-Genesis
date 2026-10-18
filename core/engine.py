@@ -25,6 +25,20 @@ PARTICLES
   Optional Pauli push (2600 form): chi * cos(theta_i - theta_j) * r_hat / r^n
   Relativistic momentum: p += F dt ; gamma = sqrt(1 + p^2/(m c)^2) ; v = p/(gamma m) ; x += v dt
   Phase clock: dtheta/dt = m / gamma
+  Force timing (MS38, time_centred_force = True, v0.1a 2026-10-18): the force on a body at x^n is read
+  from phi^n, the field at the SAME time level (kick-drift leapfrog). Before v0.1a it was read from
+  phi^(n+1), one tick ahead. A source's own well moves with it, so one tick ahead the body sat v*dt
+  behind its own well centre and was pushed forward by it (self-push ~ dt / dx^3: grew on finer grids,
+  halved with dt). Legacy 2600 keeps the old ordering (it reproduces TEGR 2600).
+  Body cloud (MS38, body_kernel, v0.1a): how an ACTIVE body (moves and feeds the field) spreads its
+  source and reads the force. Tracers, wells and anchors always use CIC (their results are unchanged).
+    cic   : 2 x 2 x 2 cells (stock). With the timing fix, a lone body still speeds up at ~0.4 c, and
+            more on finer grids (+0.3 / +1.6 / +10 % per time unit at dx 5.6 / 2.8 / 1.4): the
+            one-cell-sharp well gets shaken as the body crosses cell faces.
+    tsc   : 3 x 3 x 3 cells. About 10x smaller, but still grows on finer grids.
+    gauss : Gaussian of fixed physical width body_width (a finite body size, same on every grid).
+            Lone body speed steady to ~0.01 % per time unit at 0.1-0.4 c on dx 2.8 and 1.4.
+    Deposit and force read use the same cloud for each body.
 
 SOURCES (MS38)
   Each source of mass m adds q = 4 pi c_base^2 dt^2 G m / dx^3 to phi per tick (cloud-in-cell),
@@ -73,6 +87,10 @@ class SimSettings:
     field_force: float = 100.0          # K : F = K m grad(phi)   (legacy: F = K grad(phi))
     source_ramp_ticks: int = 3000
     warmup_ticks: int = 6000            # moving bodies are held still while the field settles
+    time_centred_force: bool = True     # MS38 only: force from phi^n at x^n (False = pre-v0.1a, one tick ahead)
+    body_kernel: str = "tsc"            # MS38 only: cloud for ACTIVE bodies: "cic" (2^3 cells), "tsc" (3^3), "gauss"
+                                        #   default tsc (user choice 2026-10-18); "cic" = pre-v0.1a
+    body_width: float = 2.8125          # gauss only: Gaussian width sigma in grid units (physical, not cells)
     pauli_strength: float = 0.0
     pauli_power: float = 3.0
     decay_base: float = 0.999           # legacy only
@@ -128,6 +146,10 @@ class SimSettings:
                         f"Lower dt or wave speed, or raise cell size.")
         if not self.is_legacy and self.sponge_width * 2 >= self.grid_resolution:
             errs.append("Sponge edge is too wide for this grid")
+        if self.body_kernel not in ("cic", "tsc", "gauss"):
+            errs.append(f"Unknown body cloud {self.body_kernel!r} (use cic, tsc or gauss)")
+        if self.body_kernel == "gauss" and self.body_width <= 0:
+            errs.append("Body width must be positive for the Gaussian cloud")
         return errs
 
 
@@ -335,6 +357,61 @@ class Sampler:
         g = torch.stack([gx, gy, gz], dim=-1) / (2.0 * self.dx)   # (N, 8, 3)
         return (w[..., None] * g).sum(dim=1)
 
+    # -- Smooth clouds for moving bodies. Same weights for deposit and gather, so a body never pushes
+    #    itself with the part of the field it has just deposited (as with CIC), but the cloud is
+    #    smoother, so the grid "shakes" the source much less as it crosses cell faces.
+    #      tsc   : triangular-shaped cloud, 3 x 3 x 3 cells (width tied to the cell size)
+    #      gauss : Gaussian of fixed PHYSICAL width sigma (same body size on every grid), cut at 3 sigma,
+    #              weights normalised per axis so the deposited amount is exact.
+    def _offsets(self, R):
+        key = f"_off{R}"
+        if not hasattr(self, key):
+            r = torch.arange(-R, R + 1, device=self.device)
+            ox, oy, oz = torch.meshgrid(r, r, r, indexing="ij")
+            setattr(self, key, torch.stack([ox.reshape(-1), oy.reshape(-1), oz.reshape(-1)], dim=1))
+        return getattr(self, key)
+
+    def _stencil(self, pos, kernel, sigma=0.0):
+        u = (pos + self.half) / self.dx - 0.5
+        ic = torch.round(u)
+        if kernel == "tsc":
+            R = 1
+            d = u - ic                                       # (N, 3) in [-0.5, 0.5]
+            w1d = torch.stack([0.5 * (0.5 - d) ** 2, 0.75 - d ** 2, 0.5 * (0.5 + d) ** 2], dim=-1)
+        elif kernel == "gauss":
+            s = max(float(sigma), 1e-6) / self.dx            # width in cells
+            R = max(1, int(math.ceil(3.0 * s)))
+            r = torch.arange(-R, R + 1, device=pos.device, dtype=pos.dtype)
+            d = (ic[..., None] + r) - u[..., None]           # (N, 3, 2R+1) cell offsets from the body
+            w1d = torch.exp(-0.5 * (d / s) ** 2)
+            w1d = w1d / w1d.sum(dim=-1, keepdim=True)
+        else:
+            raise ValueError(f"unknown body kernel {kernel!r}")
+        ic = ic.long().clamp(R + 1, self.G - R - 2)
+        o = self._offsets(R)
+        w = w1d[:, 0, o[:, 0] + R] * w1d[:, 1, o[:, 1] + R] * w1d[:, 2, o[:, 2] + R]   # (N, P)
+        idx = ic[:, None, :] + o[None]                                                   # (N, P, 3)
+        return idx, w
+
+    def deposit_smooth(self, phi, pos, amount, kernel, sigma=0.0, weight_fn=None):
+        idx, w = self._stencil(pos, kernel, sigma)
+        w = w * amount[:, None]
+        view = phi[0, 0]
+        if weight_fn is not None:
+            w = w * weight_fn(view[idx[..., 0], idx[..., 1], idx[..., 2]])
+        view.index_put_((idx[..., 0].reshape(-1), idx[..., 1].reshape(-1), idx[..., 2].reshape(-1)),
+                        w.reshape(-1).to(view.dtype), accumulate=True)
+
+    def gradient_smooth(self, phi, pos, kernel, sigma=0.0):
+        idx, w = self._stencil(pos, kernel, sigma)
+        p = phi[0, 0]
+        ix, iy, iz = idx[..., 0], idx[..., 1], idx[..., 2]
+        gx = p[ix + 1, iy, iz] - p[ix - 1, iy, iz]
+        gy = p[ix, iy + 1, iz] - p[ix, iy - 1, iz]
+        gz = p[ix, iy, iz + 1] - p[ix, iy, iz - 1]
+        g = torch.stack([gx, gy, gz], dim=-1) / (2.0 * self.dx)
+        return (w[..., None] * g).sum(dim=1)
+
 
 # ============================================================================ helpers
 def source_per_tick(s: SimSettings, mass):
@@ -492,6 +569,12 @@ class Engine:
                 return torch.sqrt(field_.c2_of(phi_cells)[1]) / s.c_base
         else:
             src_weight = None
+        centred = bool(s.time_centred_force) and not s.is_legacy
+        smooth = N > 0 and s.body_kernel != "cic" and not s.is_legacy
+        kern, sig = s.body_kernel, s.body_width
+        if smooth:
+            mov_rows = torch.nonzero(moving & is_src).flatten()     # active bodies only
+            fix_rows = torch.nonzero(~(moving & is_src)).flatten()
 
         try:
             for tick in range(1, T + 1):
@@ -502,11 +585,21 @@ class Engine:
                     # 2. sources (into the new field), smooth switch-on
                     ramp = 1.0 if (ramp_n == 0 or tick >= ramp_n) else 0.5 * (1.0 - math.cos(math.pi * tick / ramp_n))
                     amt = q * alive.to(dt_) * ramp
-                    samp.deposit(field_.phi, pos, amt, src_weight)
+                    if smooth:
+                        if len(fix_rows):
+                            samp.deposit(field_.phi, pos[fix_rows], amt[fix_rows], src_weight)
+                        if len(mov_rows):
+                            samp.deposit_smooth(field_.phi, pos[mov_rows], amt[mov_rows], kern, sig, src_weight)
+                    else:
+                        samp.deposit(field_.phi, pos, amt, src_weight)
 
                     # 3. particle motion (held still during warm-up)
                     if tick > s.warmup_ticks:
-                        grad = samp.gradient(field_.phi, pos)
+                        # after step(): phi_prev = phi^n (field at the bodies' time level), phi = phi^(n+1)
+                        phi_f = field_.phi_prev if centred else field_.phi
+                        grad = samp.gradient(phi_f, pos)
+                        if smooth and len(mov_rows):
+                            grad[mov_rows] = samp.gradient_smooth(phi_f, pos[mov_rows], kern, sig)
                         force = K * grad * (1.0 if s.is_legacy else mass[:, None])
                         if s.pauli_strength != 0.0 and N > 1:
                             diff = pos[:, None, :] - pos[None, :, :]
