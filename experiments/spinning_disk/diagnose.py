@@ -50,6 +50,15 @@ def orbit_stats(res, j, s):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Spinning disk diagnosis with v0.1a engine support")
+    parser.add_argument("--tag", default="v01a", help="Tag for output files, e.g. v01a")
+    parser.add_argument("--kernel", choices=["cic", "tsc", "gauss"], default="tsc", help="Body cloud kernel")
+    parser.add_argument("--width", type=float, default=2.8125, help="Width for Gaussian kernel")
+    args = parser.parse_args()
+
+    sd.BODY = dict(body_kernel=args.kernel, body_width=args.width)
+
     s = sd.settings(0.0)
     res_core, _ = gr.run("pre_core", s, [sd.core()])
     w = curve_from_slice(res_core.field_frames[-1], s, sd.R_CURVE)
@@ -93,7 +102,11 @@ def main():
         i10 = int(np.searchsorted(t, 10.0))
         print(f"    {label}: stars left at t=10: {100 * alive[i10]:.0f}%, at end: {100 * alive[-1]:.0f}%", flush=True)
 
-    with open(os.path.join(OUT, "diagnose.json"), "w") as f:
+    tag_str = f"_{args.tag}" if args.tag else ""
+    json_path = os.path.join(OUT, f"diagnose{tag_str}.json")
+    png_path = os.path.join(OUT, f"diagnose{tag_str}.png")
+
+    with open(json_path, "w") as f:
         json.dump(out, f, indent=1)
 
     import matplotlib
@@ -112,8 +125,8 @@ def main():
     ax[2].set_ylim(0, 1.05)
     ax[2].set_title("Disk stars still in the box"); ax[2].set_xlabel("time since release"); ax[2].legend(fontsize=7)
     plt.tight_layout()
-    plt.savefig(os.path.join(OUT, "diagnose.png"), dpi=160)
-    print("\nSaved results/diagnose.png and results/diagnose.json")
+    plt.savefig(png_path, dpi=160)
+    print(f"\nSaved {png_path} and {json_path}")
 
 
 if __name__ == "__main__":
