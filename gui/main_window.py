@@ -210,6 +210,14 @@ class MainWindow(QMainWindow):
         self.pauli_spin = self._dspin("pauliStrength", 0.0, 1e6, 0.0, 3,
                                       "Particle-particle push (TEGR 2600 Pauli). 0 = off")
         self.record_spin = self._ispin("recordEvery", 1, 100_000, 20, 10, "Save positions every N ticks")
+        self.local_source_check = QCheckBox("Source uses local wave speed")
+        self.local_source_check.setObjectName("sourceLocalSpeed")
+        self.local_source_check.setChecked(False)
+        self.local_source_check.setToolTip(
+            "Off = original MS38 rule.\n"
+            "On = each source is scaled by the local c/c_base, so horizon cores settle\n"
+            "by themselves instead of piling up to the c2_min guard.\n"
+            "Only matters when α > 0. Preserves 100% of gravitating mass at infinity.")
         form.addRow("Grid size", self.grid_spin)
         form.addRow("Cell size dx", self.dx_spin)
         form.addRow("Time step dt", self.dt_spin)
@@ -223,6 +231,7 @@ class MainWindow(QMainWindow):
         form.addRow("Source ramp", self.ramp_spin)
         form.addRow("Pauli push", self.pauli_spin)
         form.addRow("Record every", self.record_spin)
+        form.addRow(self.local_source_check)
         lay.addWidget(sim)
 
         # Legacy-only settings
@@ -399,6 +408,7 @@ class MainWindow(QMainWindow):
             "source_ramp_ticks": self.ramp_spin.value(),
             "pauli_strength": self.pauli_spin.value(),
             "record_every": self.record_spin.value(),
+            "source_local_speed": self.local_source_check.isChecked(),
             "decay_base": self.decay_spin.value(),
             "decay_gamma": self.decay_gamma_spin.value(),
             "legacy_source": self.legacy_source_spin.value(),
@@ -425,6 +435,7 @@ class MainWindow(QMainWindow):
             self.legacy_seed_check.setChecked(bool(d["legacy_seed"]))
         if "legacy_periodic" in d:
             self.legacy_periodic_check.setChecked(bool(d["legacy_periodic"]))
+        self.local_source_check.setChecked(bool(d.get("source_local_speed", False)))
         if "physics_rule" in d:
             i = self.rule_combo.findData(d["physics_rule"])
             if i >= 0:
@@ -746,6 +757,7 @@ class MainWindow(QMainWindow):
         self.legacy_box.setEnabled(legacy)
         self.sponge_spin.setEnabled(not legacy)
         self.source_spin.setEnabled(not legacy)
+        self.local_source_check.setEnabled(not legacy)
         self._sync_canvas()
         if self.editor.entity is not None:
             self.editor.set_entity(self.editor.entity, legacy=legacy)
@@ -772,7 +784,9 @@ class MainWindow(QMainWindow):
             "<b>Field (MS38, default)</b><br>"
             "φ<sub>tt</sub> = ∇·(c²∇φ) − ½ (c²)′ |∇φ|²<br>"
             "c²(φ) = c<sub>base</sub>² / (1 + α|φ|)²<br>"
-            "No drain inside the box. Sponge edges soak up waves (true 1/r gravity).<br><br>"
+            "No drain inside the box. Sponge edges soak up waves (true 1/r gravity).<br>"
+            "Optional: 'Source uses local wave speed' scales each source by c/c<sub>base</sub> "
+            "(off by default; only matters when α > 0; preserves total mass at infinity).<br><br>"
             "<b>Legacy TEGR 2600</b><br>"
             "φ<sub>tt</sub> = c²(φ) ∇²φ, times a decay each tick.<br><br>"
             "<b>Particles</b><br>"

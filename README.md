@@ -5,42 +5,41 @@
 A desktop application for simulating and analyzing topological gravity (TEGR).
 Instead of hard-coding gravity equations, TEGR Genesis simulates a flat field. Mass creates waves, and particles slide down the local slope of those waves. Gravity emerges naturally.
 
-## 📥 Required Downloads
+## 🚀 Quick Start (Zero-Setup Launcher)
 
-To run TEGR Genesis, you need Python and the following packages:
+You do **not** need to manually install complex packages or open a terminal. 
 
-**1. Python**
-*   [Python 3.12 or newer](https://www.python.org/downloads/) (Tested on Python 3.14)
+1. Ensure [Python 3.10+](https://www.python.org/downloads/) is installed on your computer.
+2. Launch the app for your operating system:
+   * **Windows:** Double-click [`Start TEGR Genesis.bat`](Start%20TEGR%20Genesis.bat).
+   * **Mac:** Double-click [`Start TEGR Genesis (Mac).command`](Start%20TEGR%20Genesis%20%28Mac%29.command).
+   * **Linux:** Run [`./Start TEGR Genesis (Linux).sh`](Start%20TEGR%20Genesis%20%28Linux%29.sh).
 
-**2. Core Libraries**
-Run the following command in your terminal to install the necessary libraries:
-```bash
-pip install PyQt6 pyqtgraph numpy matplotlib pysindy
-```
+**What happens on first launch:**
+The built-in smart bootstrap scans your hardware peripherals (detecting NVIDIA CUDA GPUs, Apple Silicon M-series chips, or CPUs) and automatically installs any missing scientific libraries (`PyQt6`, `PyTorch`, `PySINDy`, `pyqtgraph`, `matplotlib`, `numpy`) tailored specifically to your hardware. 
 
-**3. PyTorch (For the Physics Engine)**
-You must install PyTorch to run the simulation. The exact command depends on your computer's hardware. Go to the [PyTorch Get Started page](https://pytorch.org/get-started/locally/) to find the right command for your system, or use one of the common ones below:
-
-*   **NVIDIA GPU (Windows/Linux) - Highly Recommended:**
-    ```bash
-    pip install torch --index-url https://download.pytorch.org/whl/cu121
-    ```
-*   **Mac (Apple Silicon or Intel):**
-    ```bash
-    pip install torch
-    ```
-*   **CPU only (slowest):**
-    ```bash
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
-    ```
+On subsequent launches, it verifies your environment in milliseconds and opens TEGR Genesis immediately.
 
 ---
 
-## 🚀 How to Launch
+## 🛠️ Manual Installation (Optional)
 
-*   **Windows:** Double-click the `Start TEGR Genesis.bat` file.
-*   **Mac:** Double-click `Start TEGR Genesis (Mac).command`. (You may need to run `chmod +x "Start TEGR Genesis (Mac).command"` in the terminal first).
-*   **Linux:** Run `./Start TEGR Genesis (Linux).sh`.
+If you prefer to manage your own virtual environment manually:
+```bash
+# 1. Core GUI and analysis libraries
+pip install PyQt6 pyqtgraph numpy matplotlib pysindy
+
+# 2. PyTorch physics engine (choose your hardware):
+# NVIDIA GPU:
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+# Mac (Apple Silicon / Intel):
+pip install torch
+# Standard CPU:
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# 3. Run
+python main.py
+```
 
 ---
 

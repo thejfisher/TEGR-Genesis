@@ -30,6 +30,12 @@ SOURCES (MS38)
   Each source of mass m adds q = 4 pi c_base^2 dt^2 G m / dx^3 to phi per tick (cloud-in-cell),
   so the settled far field is phi = G m / r (checked by the self-test). Smooth half-cosine switch-on.
   Newton's constant in this model is G_N = K * G.
+  Optional (source_local_speed = True, updated 2026-10-17): each cloud-in-cell share is multiplied by
+  c(phi_cell) / c_base, so the source ticks at the local wave speed (conserved mass coupling).
+  Off by default. With alpha = 0 the factor is exactly 1 (identical to the stock rule).
+  Reason (TEGR but Round v2, Phase I): this linearizes the static equation in u = int c dphi,
+  stopping horizon core runaway without hiding far-field mass (full mass visible at infinity)
+  and recovering linear horizon growth r_h ~ M.
 """
 
 from __future__ import annotations
@@ -63,6 +69,7 @@ class SimSettings:
     sponge_width: int = 12
     sponge_strength: float = 0.35
     source_strength: float = 1.0        # G : settled field phi = G m / r
+    source_local_speed: bool = False    # MS38 only: scale each source by local c^2/c_base^2 (see SOURCES above)
     field_force: float = 100.0          # K : F = K m grad(phi)   (legacy: F = K grad(phi))
     source_ramp_ticks: int = 3000
     warmup_ticks: int = 6000            # moving bodies are held still while the field settles
@@ -292,12 +299,18 @@ class Sampler:
         w = (w0[:, None, :] * (1 - o)[None] + w1[:, None, :] * o[None]).prod(dim=2)  # (N, 8)
         return w
 
-    def deposit(self, phi, pos, amount):
-        """Add `amount` (N,) at positions (N,3) into phi using cloud-in-cell weights."""
+    def deposit(self, phi, pos, amount, weight_fn=None):
+        """Add `amount` (N,) at positions (N,3) into phi using cloud-in-cell weights.
+
+        weight_fn (optional): maps the phi values at the 8 corner cells (N, 8) to extra weights (N, 8).
+        Used by source_local_speed to multiply each share by c(phi_cell) / c_base.
+        """
         i0, w1 = self._cell(pos)
         w = self._weights(w1) * amount[:, None]             # (N, 8)
         idx = i0[:, None, :] + self.corners[None]           # (N, 8, 3)
         view = phi[0, 0]
+        if weight_fn is not None:
+            w = w * weight_fn(view[idx[..., 0], idx[..., 1], idx[..., 2]])
         view.index_put_((idx[..., 0].reshape(-1), idx[..., 1].reshape(-1), idx[..., 2].reshape(-1)),
                         w.reshape(-1).to(view.dtype), accumulate=True)
 
@@ -474,6 +487,11 @@ class Engine:
         K = s.field_force
         ramp_n = max(0, int(s.source_ramp_ticks))
         pauli_exp = (s.pauli_power + 1.0) / 2.0
+        if s.source_local_speed and not s.is_legacy and s.alpha != 0.0:
+            def src_weight(phi_cells):
+                return torch.sqrt(field_.c2_of(phi_cells)[1]) / s.c_base
+        else:
+            src_weight = None
 
         try:
             for tick in range(1, T + 1):
@@ -484,7 +502,7 @@ class Engine:
                     # 2. sources (into the new field), smooth switch-on
                     ramp = 1.0 if (ramp_n == 0 or tick >= ramp_n) else 0.5 * (1.0 - math.cos(math.pi * tick / ramp_n))
                     amt = q * alive.to(dt_) * ramp
-                    samp.deposit(field_.phi, pos, amt)
+                    samp.deposit(field_.phi, pos, amt, src_weight)
 
                     # 3. particle motion (held still during warm-up)
                     if tick > s.warmup_ticks:

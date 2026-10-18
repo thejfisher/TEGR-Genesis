@@ -7,6 +7,8 @@
 6    A tracer launched at circular speed stays in orbit around a well (wake-only gravity).
 7    CPU and GPU give the same answer.
 8    Legacy run with moving bodies finishes without blowing up.
+9    Optional 'source uses local wave speed': identical to stock at alpha = 0, and with alpha = 0.1
+     the horizon core settles to the same value for c2_min = 1 and 0.01 (not set by the guard).
 """
 
 import math
@@ -166,6 +168,28 @@ def legacy_smoke():
     report("Legacy 2600 run finishes", ok, f"{res.message} peak |phi| = {res.telemetry['peak_phi'].max():.3f}")
 
 
+# ---------------------------------------------------------------- 9 local-speed source (opt-in)
+def local_speed_source():
+    dx = 2.8125
+    well = [Entity("well", 0.5 * dx, 0.5 * dx, 0.5 * dx, mass=10.0)]
+    # (a) alpha = 0: the option must change nothing at all
+    s_off = SimSettings(alpha=0.0, total_ticks=3000, record_every=500)
+    s_on = SimSettings(alpha=0.0, total_ticks=3000, record_every=500, source_local_speed=True)
+    d = np.abs(Engine(s_off, DEV).run(well).final_phi - Engine(s_on, DEV).run(well).final_phi).max()
+    report("Local-speed source: no change at alpha = 0", d == 0.0, f"max field difference {d:.2e}")
+    # (b) alpha = 0.1: core must settle below the guard and not depend on it
+    peaks, notes = [], []
+    for fl in (1.0, 0.01):
+        s = SimSettings(alpha=0.1, c2_min=fl, total_ticks=16000, record_every=100, source_local_speed=True)
+        res = Engine(s, DEV).run(well)
+        raw = s.c_base ** 2 / (1.0 + s.alpha * np.abs(res.final_phi.astype(np.float64))) ** 2
+        peaks.append(float(res.telemetry["peak_phi"][-1]) if res.status == "completed" else float("inf"))
+        notes.append(f"c2_min={fl:g}: {res.status}, peak {peaks[-1]:.4g}, cells at floor {int((raw < fl).sum())}")
+    spread = abs(peaks[0] - peaks[1]) / max(peaks) if all(np.isfinite(peaks)) else float("inf")
+    report("Local-speed source: horizon core not set by c2_min", spread < 0.01,
+           f"{'; '.join(notes)}; spread {spread * 100:.3f}%")
+
+
 if __name__ == "__main__":
     t0 = time.time()
     print(f"Device: {DEV}\n")
@@ -175,5 +199,6 @@ if __name__ == "__main__":
     orbit()
     cpu_vs_gpu()
     legacy_smoke()
+    local_speed_source()
     print(f"\n{sum(results)}/{len(results)} checks passed in {time.time() - t0:.0f}s")
     sys.exit(0 if all(results) else 1)
