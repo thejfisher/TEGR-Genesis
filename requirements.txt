@@ -1,0 +1,17 @@
+# TEGR Genesis - Requirements
+# Python 3.10+ recommended
+
+# Core numerical & scientific libraries
+numpy>=1.24.0
+scipy>=1.10.0
+matplotlib>=3.7.0
+pysindy>=1.7.0
+
+# Physics engine backend (PyTorch)
+# Note: For CUDA hardware acceleration on NVIDIA GPUs, install with:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+torch>=2.0.0
+
+# Optional GUI dependencies (only needed for interactive desktop app)
+PyQt6>=6.5.0
+pyqtgraph>=0.13.0

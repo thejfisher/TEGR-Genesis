@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-10-19 14:11:14",
+  "device": "cuda",
+  "runtime_seconds": 49.180601358413696,
+  "newton_expected": 15000.0,
+  "results": [
+    {
+      "radius": 20.0,
+      "strength": 396.5,
+      "ratio": 0.026,
+      "r2": 0.0747,
+      "note": "Near-core smoothing cutoff"
+    },
+    {
+      "radius": 35.0,
+      "strength": 794.55,
+      "ratio": 0.053,
+      "r2": 0.1592,
+      "note": "Inner transition zone"
+    },
+    {
+      "radius": 50.0,
+      "strength": 19205.0,
+      "ratio": 1.28,
+      "r2": 0.9968,
+      "note": "OUTER BOOST (+28.0% pull)"
+    },
+    {
+      "radius": 70.0,
+      "strength": 17480.0,
+      "ratio": 1.165,
+      "r2": 0.9968,
+      "note": "OUTER BOOST (+16.5% pull)"
+    }
+  ]
+}

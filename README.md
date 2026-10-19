@@ -22,6 +22,18 @@ On subsequent launches, it verifies your environment in milliseconds and opens T
 
 ---
 
+## 🌌 Outer Rim Gravitational Boost Benchmark (Standalone)
+
+Want to verify the emergent **+16.5% to +28.0% outer-rim pull boost** ($R^2 = 0.9968$, no dark matter) without running the full GUI?
+
+* **Windows (1-click):** Double-click [`Run Outer Rim Boost.bat`](Run%20Outer%20Rim%20Boost.bat).
+* **Linux:** Run [`./Run Outer Rim Boost (Linux).sh`](Run%20Outer%20Rim%20Boost%20%28Linux%29.sh).
+* **Mac:** Double-click [`Run Outer Rim Boost (Mac).command`](Run%20Outer%20Rim%20Boost%20%28Mac%29.command).
+* **Command Line:** `python run_outer_rim_boost.py`
+* **Full Benchmark Guide:** See [`README_OUTER_RIM_BOOST.md`](README_OUTER_RIM_BOOST.md) for requirements, physics details, and output file documentation.
+
+---
+
 ## 🛠️ Manual Installation (Optional)
 
 If you prefer to manage your own virtual environment manually:

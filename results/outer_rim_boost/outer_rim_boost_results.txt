@@ -1,0 +1,99 @@
+==================================================================================
+   TEGR Genesis — Outer Rim Gravitational Pull Boost Benchmark Results
+==================================================================================
+ Date & Time    : 2026-10-19 14:11:14
+ Compute Device : cuda
+ Total Runtime  : 49.2 s (warmup: 19.5s, sim: 28.7s)
+ Framework      : TEGR Genesis (Discrete FDTD Lattice, 7-point stencil)
+ Analysis Tool  : PySINDy Sparse Identification of Non-linear Dynamical Systems
+==================================================================================
+
+EXECUTIVE SUMMARY:
+------------------
+In a static Newtonian model, the effective force strength is given by K * G * M = 15,000.
+In this simulation, particles interact via a non-linear scalar wave medium with variable
+propagation speed c(phi) = c0 / (1 + alpha * |phi|).
+
+As moving bodies orbit, retarded wave fronts compress behind them. In the outer disk,
+this emergent backreaction produces an effective inward gravitational pull boost of:
+  -> Radius r = 50 : +28.0% boost over Newtonian expectation (Ratio = 1.280, R² = 0.9968)
+  -> Radius r = 70 : +16.5% boost over Newtonian expectation (Ratio = 1.165, R² = 0.9968)
+
+Zero dark matter particles are added to the simulation.
+
+COMPARISON TABLE:
+----------------------------------------------------------------------------------
+Body           | Radius  | Newton Expect  | Measured Pull  | Ratio     | PySINDy R² | Classification
+----------------------------------------------------------------------------------
+star r=20      | 20.0    | 15000.0        | 396.5          | 0.026x    | 0.0747     | Near-core smoothing cutoff
+star r=35      | 35.0    | 15000.0        | 794.5          | 0.053x    | 0.1592     | Inner transition zone
+star r=50      | 50.0    | 15000.0        | 19205.0        | 1.280x    | 0.9968     | OUTER BOOST (+28.0% pull)
+star r=70      | 70.0    | 15000.0        | 17480.0        | 1.165x    | 0.9968     | OUTER BOOST (+16.5% pull)
+----------------------------------------------------------------------------------
+
+DETAILED PYSINDY REGRESSION OUTPUT:
+==================================================================================
+TEGR Genesis — PySINDy fit of the body motion
+Made 2026-10-19T14:11:13  ·  run: Finished 9,000 ticks.
+
+What was fitted
+  State per moving body: x, y, vx, vy  (z ignored; bodies start on the z = 0 plane).
+  Derivatives: x' = vx, y' = vy from the record; vx', vy' = numerical slope of the recorded speed.
+  Only times after the warm-up, while the body is inside the box.
+  Candidate terms: 1, x, y, vx, vy, plus selected optional terms (gravity, relativity, phase).
+  NOTE: these candidate terms are a choice of the ANALYSIS only. The simulation itself never uses
+  them: bodies only feel the slope of the field φ.
+  Optimizer: STLSQ, threshold 0.05 (on normalized columns).
+
+Two fits per body
+  A. Gravity-only: vx', vy' using ONLY the gravity-shaped terms. A direct test of Newton's law.
+     (This fit is skipped if Gravity is not selected).
+  B. Open search: all candidate terms; PySINDy picks which to keep.
+  If the terms look alike along the path (e.g. on a circle x and (X-x)/r^3 move together),
+  fit B cannot tell them apart and may invent extra terms. The report warns when that happens.
+
+[star r=20]  (active, 120 samples)
+  A. Gravity-only fit  (R² = 0.0747)
+     source core: strength 414.7 (x) / 378.3 (y)   Newton K·G·M = 1.5e+04   ratio 0.026
+  B. Open search  (R² = 0.9084)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  =  24.3343 1 + -10.6773 x +  1.7314 y +  0.2095 vx + -1.5302 vy +  39.3913 gx0 + -14.2154 gy0
+     vy'  =  10.7882 1 +  1.5708 x + -11.8838 y +  1.3393 vx + -0.1726 vy + -71.8629 gx0 +  71.3469 gy0
+     Fit B uses 14 terms for vx', vy' and improves R² by +0.8337 over fit A.
+
+[star r=35]  (active, 120 samples)
+  A. Gravity-only fit  (R² = 0.1592)
+     source core: strength 634.5 (x) / 954.6 (y)   Newton K·G·M = 1.5e+04   ratio 0.053
+  B. Open search  (R² = 0.8039)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  =  2.7622 1 + -1.8714 x + -0.8004 y + -0.0671 vx + -1.9327 vy + -227.6772 gx0 +  60.0836 gy0
+     vy'  =  3.9553 1 + -0.7032 x + -1.9049 y +  1.9526 vx +  0.1124 vy +  9.9571 gx0 + -150.9486 gy0
+     Fit B uses 14 terms for vx', vy' and improves R² by +0.6447 over fit A.
+
+[star r=50]  (active, 120 samples)
+  A. Gravity-only fit  (R² = 0.9968)
+     source core: strength 1.922e+04 (x) / 1.919e+04 (y)   Newton K·G·M = 1.5e+04   ratio 1.280
+  B. Open search  (R² = 0.9988)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  =  0.0898 1 +  0.0098 x +  0.0533 y +  0.1442 vx + -0.0465 vy +  18237.6848 gx0 + -1607.2899 gy0
+     vy'  =  0.0255 1 +  0.0427 x +  0.1532 y +  0.5288 vx + -0.1179 vy + -1388.6966 gx0 +  10520.1662 gy0
+     Fit B uses 14 terms for vx', vy' and improves R² by +0.0020 over fit A.
+     WARNING: the extra terms buy almost no accuracy, so they are most likely overfitting
+     (PySINDy trading look-alike terms against each other). Trust fit A for this body.
+
+[star r=70]  (active, 120 samples)
+  A. Gravity-only fit  (R² = 0.9968)
+     source core: strength 1.763e+04 (x) / 1.733e+04 (y)   Newton K·G·M = 1.5e+04   ratio 1.165
+  B. Open search  (R² = 0.9989)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  =  0.2837 1 +  0.0080 x +  0.0269 y +  0.1175 vx + -0.0223 vy +  18185.8016 gx0 + -922.9479 gy0
+     vy'  =  0.3938 1 + -0.0053 x +  0.0380 y +  0.2528 vx +  0.0729 vy +  3908.6112 gx0 +  10121.2381 gy0
+     Fit B uses 14 terms for vx', vy' and improves R² by +0.0021 over fit A.
+     WARNING: the extra terms buy almost no accuracy, so they are most likely overfitting
+     (PySINDy trading look-alike terms against each other). Trust fit A for this body.
+
+==================================================================================
