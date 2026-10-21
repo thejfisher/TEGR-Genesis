@@ -34,6 +34,19 @@ Want to verify the emergent **+16.5% to +28.0% outer-rim pull boost** ($R^2 = 0.
 
 ---
 
+## ⚛️ Hydrogen 1s Bound State Benchmark (Duda de Broglie Clock Preset)
+
+Looking to test a bound atomic electron with an internal de Broglie phase clock ($\dot{\theta} = m/\gamma$) and Pauli push on a discrete 3D lattice?
+
+* **In the GUI:** Launch TEGR Genesis, go to **File → Open Experiment (`Ctrl+O`)**, and select [`experiments/duda_hydrogen.toml`](experiments/duda_hydrogen.toml).
+* **Windows (1-click):** Double-click [`Run Duda Hydrogen.bat`](Run%20Duda%20Hydrogen.bat).
+* **Linux:** Run [`./Run Duda Hydrogen (Linux).sh`](Run%20Duda%20Hydrogen%20%28Linux%29.sh).
+* **Mac:** Double-click [`Run Duda Hydrogen (Mac).command`](Run%20Duda%20Hydrogen%20%28Mac%29.command).
+* **Command Line:** `python run_duda_hydrogen.py`
+* **Key Findings:** Stable non-collapsing orbit, natural de Broglie clock phase closure ($1.07 \times 2\pi$ per orbit), and PySINDy inverse-square Coulomb recovery ($R^2 = 0.9997$).
+
+---
+
 ## 🛠️ Manual Installation (Optional)
 
 If you prefer to manage your own virtual environment manually:
