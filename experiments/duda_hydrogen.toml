@@ -1,0 +1,69 @@
+# TEGR Genesis experiment. Open it with File > Open Experiment.
+# Self-contained: physics settings + every item on the grid.
+
+[experiment]
+name = "Duda Hydrogen Bound State"
+notes = "Hydrogen 1s bound state with de Broglie twisting clock and Pauli push"
+app = "TEGR Genesis"
+format_version = 1
+saved = "2026-10-21T09:28:15"
+
+[settings]
+physics_rule = "ms38"
+grid_resolution = 64
+dx = 2.8125
+dt = 0.005
+total_ticks = 6000
+c_base = 65.0
+alpha = 0.0
+c2_min = 1.0
+sponge_width = 12
+sponge_strength = 0.35
+source_strength = 1.0
+source_local_speed = false
+field_force = 100.0
+source_ramp_ticks = 1000
+warmup_ticks = 2000
+time_centred_force = true
+body_kernel = "gauss"
+body_width = 2.8125
+pauli_strength = 500.0
+pauli_power = 3.0
+decay_base = 0.999
+decay_gamma = 0.5
+legacy_periodic = true
+legacy_source = 0.0
+legacy_seed = true
+record_every = 20
+max_field_frames = 200
+divergence_limit = 0.0
+horizon_threshold = 1.0
+hardware = "auto"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 0.0
+z = 0.0
+vx = 0.0
+vy = 0.0
+vz = 0.0
+mass = 50.0
+amplitude = 1.0
+width = 6.0
+phase = 0.0
+label = "proton"
+
+[[entity]]
+kind = "active"
+x = 25.0
+y = 0.0
+z = 0.0
+vx = 0.0
+vy = 14.89
+vz = 0.0
+mass = 0.5
+amplitude = 1.0
+width = 6.0
+phase = 0.0
+label = "electron"

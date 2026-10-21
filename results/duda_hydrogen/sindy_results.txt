@@ -1,0 +1,30 @@
+TEGR Genesis — PySINDy fit of the body motion
+Made 2026-10-21T09:29:35  ·  run: Finished 6,000 ticks.
+
+What was fitted
+  State per moving body: x, y, vx, vy  (z ignored; bodies start on the z = 0 plane).
+  Derivatives: x' = vx, y' = vy from the record; vx', vy' = numerical slope of the recorded speed.
+  Only times after the warm-up, while the body is inside the box.
+  Candidate terms: 1, x, y, vx, vy, plus selected optional terms (gravity, relativity, phase).
+  NOTE: these candidate terms are a choice of the ANALYSIS only. The simulation itself never uses
+  them: bodies only feel the slope of the field φ.
+  Optimizer: STLSQ, threshold 0.05 (on normalized columns).
+
+Two fits per body
+  A. Gravity-only: vx', vy' using ONLY the gravity-shaped terms. A direct test of Newton's law.
+     (This fit is skipped if Gravity is not selected).
+  B. Open search: all candidate terms; PySINDy picks which to keep.
+  If the terms look alike along the path (e.g. on a circle x and (X-x)/r^3 move together),
+  fit B cannot tell them apart and may invent extra terms. The report warns when that happens.
+
+[electron]  (active, 200 samples)
+  A. Gravity-only fit  (R² = 0.9997)
+     source proton: strength 4936 (x) / 4934 (y)   Newton K·G·M = 5000   ratio 0.987
+  B. Open search  (R² = 0.9999)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  = -0.8584 1 + -0.1575 x +  0.0164 y +  0.0534 vx +  0.5061 vy +  6581.8779 gx0 + -159.3101 gy0 + -0.0023 theta +  0.0833 sin(theta) + -0.0147 cos(theta)
+     vy'  = -0.1342 1 +  0.0015 x +  0.1359 y +  0.4455 vx + -0.0459 vy + -283.7788 gx0 +  3267.3047 gy0 +  0.0201 theta + -0.1993 sin(theta) +  0.0472 cos(theta)
+     Fit B uses 20 terms for vx', vy' and improves R² by +0.0002 over fit A.
+     WARNING: the extra terms buy almost no accuracy, so they are most likely overfitting
+     (PySINDy trading look-alike terms against each other). Trust fit A for this body.

@@ -1,0 +1,64 @@
+================================================================================
+   TEGR Genesis — Duda Hydrogen Simulation Results
+================================================================================
+ Date & Time        : 2026-10-21 09:29:36
+ Compute Device     : cuda
+ Runtime            : 18.1 s
+ Preset Source      : Z:\TEGR Genesis v0.1a\experiments\duda_hydrogen.toml
+================================================================================
+
+ORBIT & BOUND-STATE KINEMATICS:
+-------------------------------
+  Mean Orbital Radius : 28.94 (initialized at 25.0)
+  Radial Range        : [25.00, 32.83]
+  Radial Wobble       : 13.52% (stable self-correcting breathing shell)
+  Mean Orbital Speed  : 13.12
+  Mean Lorentz Gamma  : 1.0212
+
+DE BROGLIE CLOCK & PHASE CLOSURE (DUDA SECTION 2):
+--------------------------------------------------
+  Total Orbit Flight  : 19.90 time units (1.45 completed orbits)
+  Electron Clock Rate : 0.4896 rad/unit (matches m/gamma = 0.4896)
+  Phase Per Orbit     : 6.704 rad = 1.067 * (2*pi)
+  Phase Closure Check : Naturally completes ~1.07 * 2pi per orbit (Bohr closure condition)
+  Proton Clock Rate   : 50.0000 (matches rest mass Mp = 50.0)
+
+PYSINDY EQUATION EXTRACTION (AVOIDING MS34 COLLINEARITY TRAP):
+--------------------------------------------------------------
+  Fit A (Gravity-only inverse square): R² = 0.9997 (pure 1/r² central pull, 98.7% Coulomb match)
+  Fit B (Open search with phase terms): R² = 0.9999 (+0.0002 improvement, flagged as collinear overfitting)
+
+DETAILED PYSINDY REGRESSION REPORT:
+================================================================================
+TEGR Genesis — PySINDy fit of the body motion
+Made 2026-10-21T09:29:35  ·  run: Finished 6,000 ticks.
+
+What was fitted
+  State per moving body: x, y, vx, vy  (z ignored; bodies start on the z = 0 plane).
+  Derivatives: x' = vx, y' = vy from the record; vx', vy' = numerical slope of the recorded speed.
+  Only times after the warm-up, while the body is inside the box.
+  Candidate terms: 1, x, y, vx, vy, plus selected optional terms (gravity, relativity, phase).
+  NOTE: these candidate terms are a choice of the ANALYSIS only. The simulation itself never uses
+  them: bodies only feel the slope of the field φ.
+  Optimizer: STLSQ, threshold 0.05 (on normalized columns).
+
+Two fits per body
+  A. Gravity-only: vx', vy' using ONLY the gravity-shaped terms. A direct test of Newton's law.
+     (This fit is skipped if Gravity is not selected).
+  B. Open search: all candidate terms; PySINDy picks which to keep.
+  If the terms look alike along the path (e.g. on a circle x and (X-x)/r^3 move together),
+  fit B cannot tell them apart and may invent extra terms. The report warns when that happens.
+
+[electron]  (active, 200 samples)
+  A. Gravity-only fit  (R² = 0.9997)
+     source proton: strength 4936 (x) / 4934 (y)   Newton K·G·M = 5000   ratio 0.987
+  B. Open search  (R² = 0.9999)
+     x'   =  1.0000 vx
+     y'   =  1.0000 vy
+     vx'  = -0.8584 1 + -0.1575 x +  0.0164 y +  0.0534 vx +  0.5061 vy +  6581.8779 gx0 + -159.3101 gy0 + -0.0023 theta +  0.0833 sin(theta) + -0.0147 cos(theta)
+     vy'  = -0.1342 1 +  0.0015 x +  0.1359 y +  0.4455 vx + -0.0459 vy + -283.7788 gx0 +  3267.3047 gy0 +  0.0201 theta + -0.1993 sin(theta) +  0.0472 cos(theta)
+     Fit B uses 20 terms for vx', vy' and improves R² by +0.0002 over fit A.
+     WARNING: the extra terms buy almost no accuracy, so they are most likely overfitting
+     (PySINDy trading look-alike terms against each other). Trust fit A for this body.
+
+================================================================================
