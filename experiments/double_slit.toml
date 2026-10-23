@@ -1,0 +1,519 @@
+# TEGR Genesis experiment. Open it with File > Open Experiment.
+# Self-contained: physics settings + every item on the grid.
+
+[experiment]
+name = "Double Slit Interference"
+notes = "Tonomura double-slit experiment: discrete lattice wave diffraction and phase-coupled particle guidance"
+app = "TEGR Genesis"
+format_version = 1
+saved = "2026-10-22T17:15:00"
+
+[settings]
+physics_rule = "ms38"
+grid_resolution = 64
+dx = 2.0
+dt = 0.005
+total_ticks = 4000
+c_base = 65.0
+alpha = 0.0
+c2_min = 1.0
+sponge_width = 8
+sponge_strength = 0.35
+source_strength = 1.0
+source_local_speed = false
+field_force = 100.0
+source_ramp_ticks = 500
+warmup_ticks = 500
+time_centred_force = true
+body_kernel = "tsc"
+body_width = 2.8125
+pauli_strength = 500.0
+pauli_power = 2.0
+decay_base = 0.999
+decay_gamma = 0.5
+legacy_periodic = true
+legacy_source = 0.0
+legacy_seed = true
+record_every = 20
+max_field_frames = 200
+divergence_limit = 0.0
+horizon_threshold = 1.0
+hardware = "auto"
+
+# --- Wave Defect Seed (Coherent Plane Wave Pulse) ---
+[[entity]]
+kind = "defect"
+x = -15.0
+y = 0.0
+z = 0.0
+vx = 0.0
+vy = 0.0
+vz = 0.0
+mass = 0.0
+amplitude = 20.0
+width = 12.0
+phase = 0.0
+label = "plane_wave_seed"
+
+# --- Barrier Wall: Central Blocker ---
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -3.0
+z = 0.0
+mass = 20.0
+label = "wall_center_m3"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -1.5
+z = 0.0
+mass = 20.0
+label = "wall_center_m1_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 0.0
+z = 0.0
+mass = 20.0
+label = "wall_center_0"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 1.5
+z = 0.0
+mass = 20.0
+label = "wall_center_p1_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 3.0
+z = 0.0
+mass = 20.0
+label = "wall_center_p3"
+
+# --- Barrier Wall: Upper Barrier (Above Top Slit) ---
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 9.0
+z = 0.0
+mass = 20.0
+label = "wall_top_9"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 11.25
+z = 0.0
+mass = 20.0
+label = "wall_top_11_25"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 13.5
+z = 0.0
+mass = 20.0
+label = "wall_top_13_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 15.75
+z = 0.0
+mass = 20.0
+label = "wall_top_15_75"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 18.0
+z = 0.0
+mass = 20.0
+label = "wall_top_18"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 20.25
+z = 0.0
+mass = 20.0
+label = "wall_top_20_25"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 22.5
+z = 0.0
+mass = 20.0
+label = "wall_top_22_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 24.75
+z = 0.0
+mass = 20.0
+label = "wall_top_24_75"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 27.0
+z = 0.0
+mass = 20.0
+label = "wall_top_27"
+
+# --- Barrier Wall: Lower Barrier (Below Bottom Slit) ---
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -9.0
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m9"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -11.25
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m11_25"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -13.5
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m13_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -15.75
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m15_75"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -18.0
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m18"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -20.25
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m20_25"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -22.5
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m22_5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -24.75
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m24_75"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = -27.0
+z = 0.0
+mass = 20.0
+label = "wall_bottom_m27"
+
+# --- Incoming Beam Particles ---
+[[entity]]
+kind = "active"
+x = -25.0
+y = -12.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_0"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -11.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_1"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -10.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_2"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -9.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_3"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -8.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_4"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -7.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_5"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -6.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_6"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -5.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_7"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -4.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_8"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -3.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_9"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -2.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_10"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = -1.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_11"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 0.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_12"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 1.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_13"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 2.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_14"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 3.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_15"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 4.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_16"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 5.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_17"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 6.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_18"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 7.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_19"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 8.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_20"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 9.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_21"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 10.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_22"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 11.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_23"
+
+[[entity]]
+kind = "active"
+x = -25.0
+y = 12.0
+z = 0.0
+vx = 12.0
+vy = 0.0
+vz = 0.0
+mass = 0.511
+label = "electron_24"

@@ -47,6 +47,19 @@ Looking to test a bound atomic electron with an internal de Broglie phase clock 
 
 ---
 
+## 🎯 Double-Slit Quantum Interference Benchmark (Tonomura Lattice Preset)
+
+Looking to test discrete lattice wave diffraction, slit scattering, and phase-guided particle trajectories through a dual-slit barrier?
+
+* **In the GUI:** Launch TEGR Genesis, go to **File → Open Experiment (`Ctrl+O`)**, and select [`experiments/double_slit.toml`](experiments/double_slit.toml).
+* **Windows (1-click):** Double-click [`Run Double Slit.bat`](Run%20Double%20Slit.bat).
+* **Linux:** Run [`./Run Double Slit (Linux).sh`](Run%20Double%20Slit%20%28Linux%29.sh).
+* **Mac:** Double-click [`Run Double Slit (Mac).command`](Run%20Double%20Slit%20%28Mac%29.command).
+* **Command Line:** `python run_double_slit.py`
+* **Key Findings:** Coherent wave pulse diffraction across two 5-unit slits ($y = \pm 6.0$), 48% transmission with wave-guided transverse deflection, generating detector screen interference fringe distributions.
+
+---
+
 ## 🛠️ Manual Installation (Optional)
 
 If you prefer to manage your own virtual environment manually:

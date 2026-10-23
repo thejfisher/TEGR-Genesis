@@ -1,0 +1,23 @@
+================================================================================
+   TEGR Genesis — Double-Slit Quantum Interference Report
+================================================================================
+ Date & Time        : 2026-10-22 17:19:26
+ Compute Device     : cuda
+ Grid Resolution    : 64^3 (dx=2.0)
+ Total Ticks        : 4000 (dt=0.005)
+ Execution Time     : 12.75 s
+
+--- BEAM TRANSMISSION METRICS ---
+ Total Beam Particles Launched : 25
+ Transmitted Through Slits     : 12 (48.0%)
+ Reflected / Blocked by Wall   : 8 (32.0%)
+ In-Flight / Interaction Zone  : 5 (20.0%)
+
+--- DIFFRACTION & FRINGE GEOMETRY ---
+ Slit Separation (Center-Center): ~12.0 grid units (slits at y = +/- 6.0)
+ Central Barrier Width          : 6.0 grid units (anchors y in [-3.0, 3.0])
+ Transmitted Y Range            : [-61.15, 61.03]
+ Transverse Spread (std dev)    : 44.80
+
+ Histogram Plot     : Z:\TEGR Genesis v0.1a\results\double_slit\double_slit_histogram.png
+================================================================================
