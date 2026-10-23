@@ -95,6 +95,11 @@ class SimSettings:
     pauli_power: float = 3.0
     pauli_reach: float = 0.0            # Yukawa/Debye screening length (0 = infinite range; >0 = exp(-r/reach))
     obstacle_anchors: bool = False      # if True, anchor entities act as rigid field obstacles (phi = 0)
+    dbb_guidance: bool = False          # if True, transverse velocity guided by wave gradient (Preset 43)
+    dbb_strength: float = 0.01          # dBB guidance coefficient: v_trans = dbb_strength * (c^2 / m) * grad(phi)
+    plane_wave_init: bool = False       # if True, seed a coherent traveling wave train in front of the slits
+    plane_wave_amp: float = 20.0        # amplitude of traveling wave train
+    plane_wave_k: float = 10.0          # wavenumber (frequency) of traveling wave train
     decay_base: float = 0.999           # legacy only
     decay_gamma: float = 0.5            # legacy only
     legacy_periodic: bool = True        # legacy only
@@ -495,6 +500,24 @@ class Engine:
                 field_.phi *= obs
                 field_.phi_prev *= obs
 
+        # --- coherent traveling wave train (Preset 43)
+        if s.plane_wave_init:
+            x_coords = -half + (torch.arange(G, device=dev, dtype=dt_) + 0.5) * dx
+            x_grid = x_coords.view(G, 1, 1).expand(G, G, G)
+            taper_start = -half + 0.8 * (0.0 - (-half))
+            taper_1d = torch.ones_like(x_coords)
+            taper_zone = (x_coords >= taper_start) & (x_coords < 0.0)
+            if taper_zone.any():
+                frac = (x_coords[taper_zone] - taper_start) / (0.0 - taper_start)
+                taper_1d[taper_zone] = torch.cos(frac * math.pi / 2.0) ** 2
+            taper_1d[x_coords >= 0.0] = 0.0
+            envelope = taper_1d.view(G, 1, 1).expand(G, G, G)
+            obs_slice = field_.obstacle_mask[0, 0] if field_.obstacle_mask is not None else 1.0
+            wave_curr = s.plane_wave_amp * torch.cos(s.plane_wave_k * x_grid) * envelope * obs_slice
+            wave_prev = s.plane_wave_amp * torch.cos(s.plane_wave_k * (x_grid + C * dt)) * envelope * obs_slice
+            field_.phi[0, 0] += wave_curr
+            field_.phi_prev[0, 0] += wave_prev
+
         # --- body arrays
         kinds = [e.kind for e in bodies]
         def mask(kset):
@@ -621,6 +644,13 @@ class Engine:
                         if smooth and len(mov_rows):
                             grad[mov_rows] = samp.gradient_smooth(phi_f, pos[mov_rows], kern, sig)
                         force = K * grad * (1.0 if s.is_legacy else mass[:, None])
+                        if s.dbb_guidance:
+                            v_dbb_y = (s.dbb_strength * (C ** 2 / mass) * grad[:, 1]).clamp(-0.5 * C, 0.5 * C)
+                            v_dbb_z = (s.dbb_strength * (C ** 2 / mass) * grad[:, 2]).clamp(-0.5 * C, 0.5 * C)
+                            g_curr = gamma_of(mom)
+                            mom[:, 1] = v_dbb_y * mass * g_curr
+                            mom[:, 2] = v_dbb_z * mass * g_curr
+                            force[:, 1:] = 0.0
                         if s.pauli_strength != 0.0 and N > 1:
                             diff = pos[:, None, :] - pos[None, :, :]
                             dist_sq = (diff ** 2).sum(dim=2) + 1e-6
@@ -636,6 +666,14 @@ class Engine:
                         g = gamma_of(mom)
                         vel = mom / (g[:, None] * mass[:, None])
                         pos = pos + vel * dt * go
+                        if s.obstacle_anchors and field_.obstacle_mask is not None:
+                            ix = ((pos[:, 0] + half) / dx).long().clamp(0, G - 1)
+                            iy = ((pos[:, 1] + half) / dx).long().clamp(0, G - 1)
+                            iz = ((pos[:, 2] + half) / dx).long().clamp(0, G - 1)
+                            hit_obs = (field_.obstacle_mask[0, 0, ix, iy, iz] == 0.0) & moving & alive
+                            if hit_obs.any():
+                                alive = alive & ~hit_obs
+                                mom[hit_obs] = 0.0
                         out = (pos.abs() > edge).any(dim=1) & moving
                         alive = alive & ~out
                     g = gamma_of(mom)

@@ -409,7 +409,8 @@ class MainWindow(QMainWindow):
 
     def settings(self):
         """Current simulation settings as a plain dict (names match core.engine.SimSettings)."""
-        return {
+        out = dict(getattr(self, "_loaded_extra_settings", {}))
+        out.update({
             "physics_rule": self.rule_combo.currentData(),
             "grid_resolution": self.grid_spin.value(),
             "dx": self.dx_spin.value(),
@@ -433,10 +434,12 @@ class MainWindow(QMainWindow):
             "legacy_seed": self.legacy_seed_check.isChecked(),
             "legacy_periodic": self.legacy_periodic_check.isChecked(),
             "hardware": self.hardware.choice_key(),
-        }
+        })
+        return out
 
     def apply_settings(self, d):
         """Fill the panel from a settings dict (used by the demo and, later, TOML load)."""
+        self._loaded_extra_settings = dict(d)
         widgets = {
             "grid_resolution": self.grid_spin, "dx": self.dx_spin, "dt": self.dt_spin,
             "total_ticks": self.ticks_spin, "c_base": self.c_spin, "alpha": self.alpha_spin,

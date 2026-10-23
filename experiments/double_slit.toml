@@ -31,24 +31,14 @@ pauli_strength = 10.0
 pauli_power = 2.0
 pauli_reach = 2.0
 obstacle_anchors = true
+dbb_guidance = true
+dbb_strength = 0.01
+plane_wave_init = true
+plane_wave_amp = 20.0
+plane_wave_k = 10.0
 record_every = 15
 max_field_frames = 100
 hardware = "auto"
-
-# --- Wave Defect Seed (Coherent Traveling Pulse) ---
-[[entity]]
-kind = "defect"
-x = -15.0
-y = 0.0
-z = 0.0
-vx = 0.0
-vy = 0.0
-vz = 0.0
-mass = 0.0
-amplitude = 20.0
-width = 8.0
-phase = 0.0
-label = "coherent_wave_seed"
 
 [[entity]]
 kind = "anchor"
