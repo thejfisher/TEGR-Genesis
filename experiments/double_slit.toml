@@ -1,19 +1,19 @@
 # TEGR Genesis experiment. Open it with File > Open Experiment.
-# Self-contained: physics settings + every item on the grid.
+# Preset 43: Double-Slit Quantum Interference (Tonomura Protocol & Phase Prism)
 
 [experiment]
-name = "Double Slit Interference"
-notes = "Tonomura double-slit experiment: discrete lattice wave diffraction and phase-coupled particle guidance"
+name = "Double Slit Interference (Preset 43)"
+notes = "Preset 43: Coherent pilot wave diffraction across dual 5-unit slits (y = +/- 3.0) with dBB phase routing"
 app = "TEGR Genesis"
 format_version = 1
-saved = "2026-10-22T17:15:00"
+saved = "2026-10-22T17:36:00"
 
 [settings]
 physics_rule = "ms38"
-grid_resolution = 64
-dx = 2.0
-dt = 0.005
-total_ticks = 4000
+grid_resolution = 128
+dx = 0.5
+dt = 0.002
+total_ticks = 1500
 c_base = 65.0
 alpha = 0.0
 c2_min = 1.0
@@ -22,25 +22,20 @@ sponge_strength = 0.35
 source_strength = 1.0
 source_local_speed = false
 field_force = 100.0
-source_ramp_ticks = 500
-warmup_ticks = 500
+source_ramp_ticks = 0
+warmup_ticks = 0
 time_centred_force = true
 body_kernel = "tsc"
 body_width = 2.8125
-pauli_strength = 500.0
+pauli_strength = 10.0
 pauli_power = 2.0
-decay_base = 0.999
-decay_gamma = 0.5
-legacy_periodic = true
-legacy_source = 0.0
-legacy_seed = true
-record_every = 20
-max_field_frames = 200
-divergence_limit = 0.0
-horizon_threshold = 1.0
+pauli_reach = 2.0
+obstacle_anchors = true
+record_every = 15
+max_field_frames = 100
 hardware = "auto"
 
-# --- Wave Defect Seed (Coherent Plane Wave Pulse) ---
+# --- Wave Defect Seed (Coherent Traveling Pulse) ---
 [[entity]]
 kind = "defect"
 x = -15.0
@@ -51,469 +46,1467 @@ vy = 0.0
 vz = 0.0
 mass = 0.0
 amplitude = 20.0
-width = 12.0
+width = 8.0
 phase = 0.0
-label = "plane_wave_seed"
-
-# --- Barrier Wall: Central Blocker ---
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = -3.0
-z = 0.0
-mass = 20.0
-label = "wall_center_m3"
+label = "coherent_wave_seed"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = -1.5
+y = -25.0
 z = 0.0
-mass = 20.0
-label = "wall_center_m1_5"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-25.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 0.0
+y = -24.0
 z = 0.0
-mass = 20.0
-label = "wall_center_0"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-24.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 1.5
+y = -23.0
 z = 0.0
-mass = 20.0
-label = "wall_center_p1_5"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-23.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 3.0
+y = -22.0
 z = 0.0
-mass = 20.0
-label = "wall_center_p3"
-
-# --- Barrier Wall: Upper Barrier (Above Top Slit) ---
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 9.0
-z = 0.0
-mass = 20.0
-label = "wall_top_9"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-22.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 11.25
+y = -21.0
 z = 0.0
-mass = 20.0
-label = "wall_top_11_25"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-21.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 13.5
+y = -20.0
 z = 0.0
-mass = 20.0
-label = "wall_top_13_5"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-20.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = 15.75
+y = -19.0
 z = 0.0
-mass = 20.0
-label = "wall_top_15_75"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 18.0
-z = 0.0
-mass = 20.0
-label = "wall_top_18"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 20.25
-z = 0.0
-mass = 20.0
-label = "wall_top_20_25"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 22.5
-z = 0.0
-mass = 20.0
-label = "wall_top_22_5"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 24.75
-z = 0.0
-mass = 20.0
-label = "wall_top_24_75"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = 27.0
-z = 0.0
-mass = 20.0
-label = "wall_top_27"
-
-# --- Barrier Wall: Lower Barrier (Below Bottom Slit) ---
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = -9.0
-z = 0.0
-mass = 20.0
-label = "wall_bottom_m9"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = -11.25
-z = 0.0
-mass = 20.0
-label = "wall_bottom_m11_25"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = -13.5
-z = 0.0
-mass = 20.0
-label = "wall_bottom_m13_5"
-
-[[entity]]
-kind = "anchor"
-x = 0.0
-y = -15.75
-z = 0.0
-mass = 20.0
-label = "wall_bottom_m15_75"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-19.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
 y = -18.0
 z = 0.0
-mass = 20.0
-label = "wall_bottom_m18"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-18.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = -20.25
+y = -17.0
 z = 0.0
-mass = 20.0
-label = "wall_bottom_m20_25"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-17.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = -22.5
+y = -16.0
 z = 0.0
-mass = 20.0
-label = "wall_bottom_m22_5"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-16.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = -24.75
+y = -15.0
 z = 0.0
-mass = 20.0
-label = "wall_bottom_m24_75"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-15.0"
 
 [[entity]]
 kind = "anchor"
 x = 0.0
-y = -27.0
+y = -14.0
 z = 0.0
-mass = 20.0
-label = "wall_bottom_m27"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-14.0"
 
-# --- Incoming Beam Particles ---
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
+y = -13.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-13.0"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
 y = -12.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_0"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-12.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -11.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_1"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-11.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -10.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_2"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-10.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -9.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_3"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-9.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -8.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_4"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-8.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -7.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_5"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-7.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = -6.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_6"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-6.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = -5.0
+kind = "anchor"
+x = 0.0
+y = -0.5
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_7"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y-0.5"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = -4.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_8"
-
-[[entity]]
-kind = "active"
-x = -25.0
-y = -3.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_9"
-
-[[entity]]
-kind = "active"
-x = -25.0
-y = -2.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_10"
-
-[[entity]]
-kind = "active"
-x = -25.0
-y = -1.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_11"
-
-[[entity]]
-kind = "active"
-x = -25.0
+kind = "anchor"
+x = 0.0
 y = 0.0
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_12"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y0.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 1.0
+kind = "anchor"
+x = 0.0
+y = 0.5
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_13"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y0.5"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 2.0
+kind = "anchor"
+x = 0.0
+y = 5.5
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_14"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y5.5"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 3.0
+kind = "anchor"
+x = 0.0
+y = 6.5
 z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_15"
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y6.5"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 4.0
+kind = "anchor"
+x = 0.0
+y = 7.5
 z = 0.0
-vx = 12.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y7.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 8.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y8.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 9.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y9.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 10.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y10.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 11.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y11.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 12.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y12.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 13.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y13.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 14.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y14.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 15.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y15.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 16.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y16.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 17.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y17.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 18.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y18.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 19.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y19.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 20.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y20.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 21.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y21.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 22.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y22.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 23.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y23.5"
+
+[[entity]]
+kind = "anchor"
+x = 0.0
+y = 24.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x0_y24.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -25.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-25.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -24.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-24.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -23.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-23.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -22.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-22.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -21.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-21.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -20.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-20.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -19.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-19.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -18.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-18.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -17.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-17.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -16.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-16.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -15.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-15.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -14.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-14.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -13.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-13.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -12.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-12.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -11.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-11.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -10.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-10.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -9.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-9.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -8.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-8.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -7.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-7.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -6.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-6.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = -0.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y-0.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 0.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y0.0"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 0.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y0.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 5.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y5.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 6.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y6.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 7.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y7.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 8.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y8.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 9.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y9.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 10.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y10.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 11.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y11.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 12.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y12.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 13.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y13.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 14.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y14.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 15.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y15.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 16.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y16.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 17.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y17.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 18.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y18.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 19.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y19.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 20.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y20.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 21.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y21.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 22.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y22.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 23.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y23.5"
+
+[[entity]]
+kind = "anchor"
+x = -1.0
+y = 24.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-1_y24.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -25.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-25.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -24.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-24.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -23.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-23.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -22.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-22.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -21.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-21.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -20.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-20.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -19.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-19.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -18.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-18.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -17.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-17.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -16.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-16.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -15.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-15.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -14.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-14.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -13.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-13.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -12.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-12.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -11.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-11.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -10.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-10.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -9.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-9.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -8.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-8.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -7.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-7.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -6.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-6.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = -0.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y-0.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 0.0
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y0.0"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 0.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y0.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 5.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y5.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 6.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y6.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 7.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y7.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 8.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y8.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 9.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y9.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 10.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y10.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 11.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y11.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 12.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y12.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 13.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y13.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 14.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y14.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 15.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y15.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 16.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y16.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 17.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y17.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 18.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y18.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 19.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y19.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 20.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y20.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 21.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y21.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 22.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y22.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 23.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y23.5"
+
+[[entity]]
+kind = "anchor"
+x = -2.0
+y = 24.5
+z = 0.0
+mass = 0.0
+phase = 0.0
+label = "wall_x-2_y24.5"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -10.0
+z = 0.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_16"
+phase = 0.0
+label = "beam_y-10.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "tracer"
+x = -10.0
+y = -9.17
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-9.17"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -8.33
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-8.33"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -7.5
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-7.5"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -6.67
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-6.67"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -5.83
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-5.83"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -5.0
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-5.0"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -4.17
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-4.17"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -3.33
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-3.33"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -2.5
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-2.5"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -1.67
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-1.67"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = -0.83
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y-0.83"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 0.0
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y0.0"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 0.83
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y0.83"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 1.67
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y1.67"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 2.5
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y2.5"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 3.33
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y3.33"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
+y = 4.17
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y4.17"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
 y = 5.0
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_17"
+phase = 0.0
+label = "beam_y5.0"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 6.0
+kind = "tracer"
+x = -10.0
+y = 5.83
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_18"
+phase = 0.0
+label = "beam_y5.83"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 7.0
+kind = "tracer"
+x = -10.0
+y = 6.67
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_19"
+phase = 0.0
+label = "beam_y6.67"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 8.0
+kind = "tracer"
+x = -10.0
+y = 7.5
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_20"
+phase = 0.0
+label = "beam_y7.5"
 
 [[entity]]
-kind = "active"
-x = -25.0
-y = 9.0
+kind = "tracer"
+x = -10.0
+y = 8.33
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_21"
+phase = 0.0
+label = "beam_y8.33"
 
 [[entity]]
-kind = "active"
-x = -25.0
+kind = "tracer"
+x = -10.0
+y = 9.17
+z = 0.0
+vx = 19.57
+vy = 0.0
+vz = 0.0
+mass = 0.511
+phase = 0.0
+label = "beam_y9.17"
+
+[[entity]]
+kind = "tracer"
+x = -10.0
 y = 10.0
 z = 0.0
-vx = 12.0
+vx = 19.57
 vy = 0.0
 vz = 0.0
 mass = 0.511
-label = "electron_22"
-
-[[entity]]
-kind = "active"
-x = -25.0
-y = 11.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_23"
-
-[[entity]]
-kind = "active"
-x = -25.0
-y = 12.0
-z = 0.0
-vx = 12.0
-vy = 0.0
-vz = 0.0
-mass = 0.511
-label = "electron_24"
+phase = 0.0
+label = "beam_y10.0"

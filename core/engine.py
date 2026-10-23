@@ -93,6 +93,8 @@ class SimSettings:
     body_width: float = 2.8125          # gauss only: Gaussian width sigma in grid units (physical, not cells)
     pauli_strength: float = 0.0
     pauli_power: float = 3.0
+    pauli_reach: float = 0.0            # Yukawa/Debye screening length (0 = infinite range; >0 = exp(-r/reach))
+    obstacle_anchors: bool = False      # if True, anchor entities act as rigid field obstacles (phi = 0)
     decay_base: float = 0.999           # legacy only
     decay_gamma: float = 0.5            # legacy only
     legacy_periodic: bool = True        # legacy only
@@ -209,6 +211,7 @@ class FieldSolver:
             self.base_decay = self._sponge(1.0, s.sponge_width, s.sponge_strength) if s.sponge_width > 0 else None
         self.c2 = None
         self.decay = None
+        self.obstacle_mask = None
         self._update_impedance()
 
     # -- setup
@@ -273,6 +276,8 @@ class FieldSolver:
         nxt.add_(self._accel_term())
         if self.decay is not None:
             nxt.mul_(self.decay)
+        if self.obstacle_mask is not None:
+            nxt.mul_(self.obstacle_mask)
         self.phi_prev, self.phi = self.phi, nxt
 
     def energy(self):
@@ -475,6 +480,21 @@ class Engine:
             field_.phi += bump
             field_.phi_prev += bump
 
+        # --- obstacle mask for field barriers (anchors)
+        if s.obstacle_anchors:
+            anchors = [e for e in entities if e.kind == "anchor"]
+            if anchors:
+                obs = torch.ones((1, 1, G, G, G), device=dev, dtype=dt_)
+                for a in anchors:
+                    ix = int((a.x + half) / dx)
+                    iy = int((a.y + half) / dx)
+                    iz = int((a.z + half) / dx)
+                    if 0 <= ix < G and 0 <= iy < G and 0 <= iz < G:
+                        obs[0, 0, max(0, ix-1):min(G, ix+2), max(0, iy-1):min(G, iy+2), max(0, iz-1):min(G, iz+2)] = 0.0
+                field_.obstacle_mask = obs
+                field_.phi *= obs
+                field_.phi_prev *= obs
+
         # --- body arrays
         kinds = [e.kind for e in bodies]
         def mask(kset):
@@ -605,8 +625,12 @@ class Engine:
                             diff = pos[:, None, :] - pos[None, :, :]
                             dist_sq = (diff ** 2).sum(dim=2) + 1e-6
                             coup = torch.cos(theta[:, None] - theta[None, :]) * pauli_pair
-                            force = force + (s.pauli_strength * coup[..., None] * diff
-                                             / dist_sq[..., None] ** pauli_exp).sum(dim=1)
+                            p_term = (s.pauli_strength * coup[..., None] * diff
+                                      / dist_sq[..., None] ** pauli_exp)
+                            if s.pauli_reach > 0.0:
+                                dist = torch.sqrt(dist_sq)
+                                p_term = p_term * torch.exp(-dist / s.pauli_reach)[..., None]
+                            force = force + p_term.sum(dim=1)
                         go = (moving & alive).to(dt_)[:, None]
                         mom = mom + force * dt * go
                         g = gamma_of(mom)
